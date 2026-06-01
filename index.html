@@ -85,7 +85,7 @@
         .btn-danger { background-color: #e53e3e; }
         .btn-danger:hover { background-color: #c53030; }
 
-        /* 🛠️ 레이아웃 수정: 정확히 반반(1:1) 분할 및 늘어남 방지 */
+        /* 레이아웃: 정확히 반반(1:1) 분할 및 늘어남 방지 */
         .main-layout {
             display: flex;
             gap: 25px;
@@ -106,7 +106,7 @@
         .right-side {
             flex: 1;
             width: 50%;
-            min-width: 0; /* 크롬/파이어폭스 차트 무한 확장 버그를 잡는 핵심 코드 */
+            min-width: 0; 
             position: sticky;
             top: 20px;
         }
@@ -185,7 +185,7 @@
         }
         .highlight { color: #e53e3e; font-size: 22px; }
 
-        /* 🛠️ 그래프 박스 크기 강제 제어 */
+        /* 그래프 박스 크기 강제 제어 */
         .chart-container {
             background-color: #fff;
             padding: 20px;
@@ -193,7 +193,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             height: 400px; 
             width: 100%;
-            overflow: hidden; /* 영역 삐져나옴 방지 */
+            overflow: hidden; 
         }
     </style>
 </head>
@@ -209,8 +209,8 @@
     <div class="controls" style="justify-content: center; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px;">
         <div class="control-group" style="flex-direction: row; align-items: center; gap: 10px;">
             <label for="globalPairCount" style="font-size: 16px;">대립유전자 쌍의 수 (N쌍):</label>
-            <input type="number" id="globalPairCount" value="3" min="1" max="10" onchange="resetAll()">
-            <span style="font-size: 14px; color:#718096;">*변경 시 모든 데이터가 초기화됩니다.</span>
+            <input type="number" id="globalPairCount" value="3" min="1" max="20" onchange="resetAll()">
+            <span style="font-size: 14px; color:#718096;">*최대 20쌍까지만 설정 가능합니다.</span>
         </div>
     </div>
 
@@ -243,9 +243,12 @@
                 <div class="controls">
                     <div class="control-group">
                         <label for="trialCount">반복 실행 횟수:</label>
-                        <input type="number" id="trialCount" value="1000" min="10" max="100000">
+                        <input type="number" id="trialCount" value="1000" min="10" max="10000">
                     </div>
                     <button class="btn btn-primary" onclick="runAutoSimulation()">⚡ 시뮬레이션 대량 실행</button>
+                </div>
+                <div style="font-size: 13px; color:#e53e3e; margin-top: -10px; margin-bottom: 10px; font-weight: bold;">
+                    * 웹 브라우저 다운 방지를 위해 최대 실행 횟수는 10,000회로 제한됩니다.
                 </div>
                 <div class="status-text" id="autoStatus"></div>
             </div>
@@ -271,6 +274,21 @@
             resetAll();
         };
 
+        // 안전하게 유전자 쌍 개수 가져오기 (스크립트단 방어적 코드)
+        function getPairCount() {
+            let count = parseInt(document.getElementById('globalPairCount').value) || 3;
+            if (count > 20) {
+                alert("대립유전자 쌍은 최대 20쌍까지만 설정할 수 있습니다. (20쌍으로 자동 조정됩니다)");
+                document.getElementById('globalPairCount').value = 20;
+                count = 20;
+            }
+            if (count < 1) {
+                document.getElementById('globalPairCount').value = 1;
+                count = 1;
+            }
+            return count;
+        }
+
         function resetAll() {
             const pairCount = getPairCount();
             const totalStones = pairCount * 2;
@@ -284,10 +302,6 @@
             
             createBinsUI();
             updateChart();
-        }
-
-        function getPairCount() {
-            return parseInt(document.getElementById('globalPairCount').value) || 3;
         }
 
         function switchTab(mode) {
@@ -371,10 +385,21 @@
             }, 50);
         }
 
+        // 안전하게 시뮬레이션 횟수 가져오기 및 실행 (스크립트단 방어적 코드)
         function runAutoSimulation() {
             const pairCount = getPairCount();
             const totalStones = pairCount * 2;
-            const trialCount = parseInt(document.getElementById('trialCount').value) || 1000;
+            let trialCount = parseInt(document.getElementById('trialCount').value) || 1000;
+
+            if (trialCount > 10000) {
+                alert("대량 시뮬레이션은 최대 10,000회까지만 실행 가능합니다. (10,000회로 자동 조정됩니다)");
+                document.getElementById('trialCount').value = 10000;
+                trialCount = 10000;
+            }
+            if (trialCount < 10) {
+                document.getElementById('trialCount').value = 10;
+                trialCount = 10;
+            }
 
             autoResults = new Array(totalStones + 1).fill(0);
 
@@ -434,7 +459,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // 이 옵션과 부모 CSS가 만나 그래프 폭주를 막습니다.
+                    maintainAspectRatio: false, 
                     animation: {
                         duration: currentMode === 'manual' ? 300 : 800 
                     },
@@ -453,4 +478,4 @@
         }
     </script>
 </body>
-</html>s
+</html>
